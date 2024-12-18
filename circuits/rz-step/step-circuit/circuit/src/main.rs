@@ -1,12 +1,15 @@
 use committee_iso::utils::{merkleize_keys, uint64_to_le_256, verify_merkle_proof};
 use risc0_zkvm::guest::env;
+use std::io::Read;
 use step_iso::{
     types::{SyncStepArgs, SyncStepCircuitInput, SyncStepCircuitOutput},
     verify_aggregate_signature,
 };
 
 fn main() {
-    let inputs: SyncStepCircuitInput = env::read();
+    let mut buffer: Vec<u8> = vec![];
+    let _ = env::stdin().read_to_end(&mut buffer);
+    let inputs: SyncStepCircuitInput = borsh::from_slice(&buffer).unwrap();
     let args: SyncStepArgs = inputs.args;
     verify_merkle_proof(
         args.execution_payload_branch.to_vec(),
@@ -16,8 +19,8 @@ fn main() {
     );
 
     let finalized_header_root = merkleize_keys(vec![
-        uint64_to_le_256(args.finalized_header.slot),
-        uint64_to_le_256(args.finalized_header.proposer_index as u64),
+        uint64_to_le_256(args.finalized_header.slot.parse::<u64>().unwrap()),
+        uint64_to_le_256(args.finalized_header.proposer_index.parse::<u64>().unwrap()),
         args.finalized_header.parent_root.to_vec(),
         args.finalized_header.state_root.to_vec(),
         args.finalized_header.body_root.to_vec(),

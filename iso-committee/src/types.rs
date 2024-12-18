@@ -8,15 +8,13 @@ pub type Slot = u64;
 pub type ValidatorIndex = usize;
 pub type PublicKeys = Vec<Vec<u8>>;
 pub type PublicKeyHashes = Vec<Vec<u8>>;
+use borsh::{BorshDeserialize, BorshSerialize};
+use serde::{Deserialize, Serialize};
 
-#[derive(
-    Default, Debug, SimpleSerialize, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize,
-)]
+#[derive(Debug, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 pub struct BeaconBlockHeader {
-    #[serde(with = "ssz_rs::serde::as_str")]
-    pub slot: Slot,
-    #[serde(with = "ssz_rs::serde::as_str")]
-    pub proposer_index: ValidatorIndex,
+    pub slot: String,
+    pub proposer_index: String,
     pub parent_root: Root,
     pub state_root: Root,
     pub body_root: Root,
@@ -28,14 +26,14 @@ pub type Branch = Vec<Vec<u8>>;
 pub type Leaf = Vec<u8>;
 pub type Commitment = Vec<u8>;
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 pub struct CommitteeUpdateArgs {
     pub pubkeys_compressed: PublicKeys,
     pub finalized_header: BeaconBlockHeader,
     pub sync_committee_branch: Branch,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 pub struct CommitteeCircuitOutput {
     pub block_root: Vec<u8>,
     pub commitment_pkeys: Vec<u8>,

@@ -14,7 +14,6 @@ use committee_iso::utils::{
 };
 use types::Commitment;
 use types::SyncStepArgs;
-
 pub mod types;
 pub mod utils;
 
@@ -46,7 +45,7 @@ fn aggregate_pubkey(args: SyncStepArgs) -> (G1Affine, Commitment) {
         // double if equal, add if unequal
         if generator == affine_projective {
             // double
-            generator = G1Projective::from(generator).double().into();
+            generator = generator.double().into();
         } else {
             // add
             generator = (generator + G1Projective::from(affine)).into();
@@ -56,13 +55,14 @@ fn aggregate_pubkey(args: SyncStepArgs) -> (G1Affine, Commitment) {
     (generator.into(), pubkey_commitment)
 }
 
+#[sp1_derive::cycle_tracker]
 pub fn verify_aggregate_signature(args: SyncStepArgs, committee_commitment: [u8; 32]) {
     const DST: &[u8] = b"BLS_SIG_BLS12381G2_XMD:SHA-256_SSWU_RO_POP_";
     let (aggregate_key, commitment): (G1Affine, Commitment) = aggregate_pubkey(args.clone());
     assert_eq!(commitment, committee_commitment);
     let attested_header_root = merkleize_keys(vec![
-        uint64_to_le_256(args.attested_header.slot),
-        uint64_to_le_256(args.attested_header.proposer_index as u64),
+        uint64_to_le_256(args.attested_header.slot.parse::<u64>().unwrap()),
+        uint64_to_le_256(args.attested_header.proposer_index.parse::<u64>().unwrap()),
         args.attested_header.parent_root.to_vec(),
         args.attested_header.state_root.to_vec(),
         args.attested_header.body_root.to_vec(),
@@ -113,8 +113,8 @@ mod tests {
 
         // equivalent to a block hash
         let finalized_header_root = merkleize_keys(vec![
-            uint64_to_le_256(args.finalized_header.slot),
-            uint64_to_le_256(args.finalized_header.proposer_index as u64),
+            uint64_to_le_256(args.finalized_header.slot.parse::<u64>().unwrap()),
+            uint64_to_le_256(args.finalized_header.proposer_index.parse::<u64>().unwrap()),
             args.finalized_header.parent_root.to_vec(),
             args.finalized_header.state_root.to_vec(),
             args.finalized_header.body_root.to_vec(),
