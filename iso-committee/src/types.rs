@@ -1,4 +1,5 @@
 use crate::utils::compute_digest;
+use alloy_sol_types::sol;
 use itertools::Itertools;
 use lazy_static::lazy_static;
 
@@ -35,15 +36,15 @@ pub struct CommitteeUpdateArgs {
 
 #[derive(Debug, Clone, Serialize, Deserialize, BorshSerialize, BorshDeserialize)]
 pub struct CommitteeCircuitOutput {
-    pub block_root: Vec<u8>,
-    pub commitment_pkeys: Vec<u8>,
+    pub commitment: [u8; 32],
+    pub finalized_header_root: [u8; 32],
 }
 
 impl CommitteeCircuitOutput {
-    pub fn new(block_root: Vec<u8>, commitment_pkeys: [u8; 32]) -> Self {
+    pub fn new(commitment: [u8; 32], finalized_header_root: [u8; 32]) -> Self {
         Self {
-            block_root,
-            commitment_pkeys: commitment_pkeys.to_vec(),
+            commitment,
+            finalized_header_root,
         }
     }
 }
@@ -58,4 +59,11 @@ lazy_static! {
         .try_into()
         .unwrap()
     };
+}
+
+sol! {
+    struct WrappedOutput{
+        bytes32 commitment;
+        bytes32 finalized_header_root;
+    }
 }

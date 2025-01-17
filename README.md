@@ -2,6 +2,9 @@
 
 On an `A100` server from lambda labs, this zk light client can verify a committee update and step in `~97 seconds`.
 
+> [!WARNING]
+> The Risc0 circuits are currently on hold, please proceed with the SP1 circuits for safety & performance reasons!
+
 ## Summary of current state - bottlenecks
 
 > [!NOTE]
@@ -149,7 +152,7 @@ Verified Committee Root: [25, 122, 75, 125, 192, 12, 117, 238, 92, 109, 3, 192, 
 Run this command:
 
 ```bash
-cargo test --bin prover test_step_circuit_risc0 -- --nocapture
+cargo test test_step_circuit_risc0 -- --nocapture
 ```
 
 Make sure to specify the path to `sync_step_512.json` as an environment variable when running any of the integration tests that are related to the step circuit.
@@ -158,22 +161,30 @@ Example:
 
 `see above`
 
-
-
 ## Metal Acceleration
 
 Use the `-F metal` flag to enable `metal` acceleration on MacOS, for example:
 
 ```bash
-cargo test --bin prover test_step_circuit_risc0 --release -F metal
+cargo test test_step_circuit_risc0 --release -F metal
 ```
 
 to run the accelerated `step circuit`.
 
 ## Test Data
 
-Test data for the circuit can be found in `data/rotation_512.json`. 
-It contains a committee update for Beacon with `512` public keys, a merkle branch and the resulting root.
+Test data for the circuit can be found in `data/*.json`. 
+The `rotation_512.json` file is used with the committee circuit,
+the `sync_step_512.json` file is used with the step circuit.
+
+## Deployment - Theory
+
+In order to deploy this prover in production, one would have to query one or more trusted Ethereum consensus nodes for `sync steps` and `committee updates`. 
+Whenever a new `committee update` occurs, it must be applied before new `sync steps` can be proven. A solidity contract should handle the `committee updates` seperately to 
+the `sync steps` and aim to expose the most recent trusted Ethereum root.
+
+> [!NOTE]
+> `Sync steps` are always verified against the most recent committee.
 
 # Integrations - third party proof verification infrastructure
 
