@@ -8,10 +8,21 @@ mod tests {
     };
     use sp1_sdk::HashableKey;
     use std::path::Path;
-    use step_iso::types::SyncStepCircuitOutput;
+    use std::process::Command;
 
     #[tokio::test(flavor = "multi_thread")]
     async fn test_committee_update_beacon_cli_e2e() {
+        let prune_out = Command::new("docker")
+            .arg("system")
+            .arg("prune")
+            .arg("-a")
+            .arg("-f")
+            .output()
+            .expect("Failed to prune");
+        println!(
+            "Docker prune out: {}",
+            &String::from_utf8(prune_out.stdout).unwrap()
+        );
         let path = Path::new("/Users/chef/.sp1/circuits/plonk/v3.0.0");
         if tokio::fs::metadata(path).await.is_ok() {
             tokio::fs::remove_dir_all(path)
@@ -40,8 +51,6 @@ mod tests {
             &prover::ProofCompressionBool::Compressed,
         );
         let step_public_values = step_proof.public_values.to_vec();
-        let _step_public_values_decoded: SyncStepCircuitOutput =
-            borsh::from_slice(&step_public_values).expect("Failed to decode public values!");
 
         let step_inputs = RecursiveInputs {
             public_values: step_public_values,
